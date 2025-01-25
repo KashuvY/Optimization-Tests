@@ -1,6 +1,7 @@
 import numpy as np
 import time
 
+# Coordinate
 class COOMatrix:
     def __init__(self, row_indices, col_indices, values, shape):
         self.row_indices = row_indices
@@ -16,6 +17,7 @@ class COOMatrix:
             result[row] += self.values[i] * vector[col]
         return result
 
+# Compressed Sparse Row
 class CSRMatrix:
     def __init__(self, values, col_indices, row_ptr, shape):
         self.values = values
@@ -32,6 +34,25 @@ class CSRMatrix:
             for j in range(start, end):
                 result[i] += self.values[j] * vector[self.col_indices[j]]
         return result
+
+# Compressed Sparse Column
+class CSCMatrix:
+    def __init__(self, values, row_indices, col_ptr, shape):
+        self.values = values
+        self.row_indices = row_indices
+        self.col_ptr = col_ptr
+        self.shape = shape
+
+    def matrix_vector_mult(self, vector):
+        result = np.zeros(self.shape[0])
+        # Process each col's elements contiguously
+        for j in range(self.shape[1]):
+            start, end = self.col_ptr[j], self.col_ptr[j+1]
+            # Process parts of rows with bad memory locality
+            for i in range(start, end):
+                result[self.row_indices[i]] = self.values[i] * vector[j]
+        return result 
+
 
 # Create a large sparse matrix (0.1% density)
 size = 10000
